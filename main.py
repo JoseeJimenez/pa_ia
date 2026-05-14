@@ -33,7 +33,7 @@ def obtener_dato(mensaje, es_binario=False):
 ejecutando = True
 
 while ejecutando:
-    print("\n" + "="*45)
+    print("\n" + "="*45)#45 y lo que sea ya
     print("   SISTEMA DE SELECCIÓN DE ALGORITMOS IA")
     print("="*45)
     print("1. Naive Bayes (Probabilidades completas)")
