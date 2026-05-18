@@ -6,7 +6,6 @@ from sklearn.neighbors import KNeighborsClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.preprocessing import StandardScaler
 
-# Cargar dataset
 df = pd.read_csv('heart_failure_clinical_records_dataset.csv')
 X = df.drop('DEATH_EVENT', axis=1)
 y = df['DEATH_EVENT']
