@@ -61,6 +61,63 @@ const RECS = {
    --------------------------------------------------------------- */
 function z(id) { return document.getElementById(id); }
 
+function clamp(value, min, max) {
+  return Math.min(Math.max(value, min), max);
+}
+
+function rangeAccentForInput(input, value) {
+  const healthyMin = Number(input.dataset.healthyMin);
+  const healthyMax = Number(input.dataset.healthyMax);
+  const min = Number(input.min);
+  const max = Number(input.max);
+
+  if (Number.isFinite(healthyMin) && Number.isFinite(healthyMax)) {
+    if (value >= healthyMin && value <= healthyMax) {
+      return '#184f49';
+    }
+
+    const distance = value < healthyMin
+      ? (healthyMin - value) / Math.max(healthyMin - min, 1)
+      : (value - healthyMax) / Math.max(max - healthyMax, 1);
+
+    const hue = clamp(120 - (120 * distance), 0, 120);
+    return `hsl(${hue}, 62%, 42%)`;
+  }
+
+  return 'var(--primary)';
+}
+
+/* ---------------------------------------------------------------
+   SLIDERS DE RANGO
+   --------------------------------------------------------------- */
+function updateRangeControl(input) {
+  const min = Number(input.min);
+  const max = Number(input.max);
+  const value = Number(input.value);
+  const percentage = max === min ? 0 : ((value - min) / (max - min)) * 100;
+  input.style.setProperty('--range-fill', percentage.toFixed(2) + '%');
+  input.style.setProperty('--range-accent', rangeAccentForInput(input, value));
+
+  const output = z(`${input.id}-value`);
+  if (output) output.textContent = String(value);
+}
+
+function initRangeControls() {
+  document.querySelectorAll('.range-input').forEach(input => {
+    updateRangeControl(input);
+    input.addEventListener('input', () => {
+      updateRangeControl(input);
+      const wrapper = input.closest('.range-wrapper');
+      if (wrapper) wrapper.classList.remove('error');
+      input.classList.remove('error');
+      hideError();
+    });
+    input.addEventListener('change', () => updateRangeControl(input));
+  });
+}
+
+initRangeControls();
+
 /* ---------------------------------------------------------------
    TOOLTIP
    --------------------------------------------------------------- */
@@ -136,8 +193,22 @@ function showError(msg) {
   formError.scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
 function hideError()       { formError.hidden = true; }
-function markFieldError(id){ const el = z(id); if (el) el.classList.add('error'); }
-function clearFieldErrors(){ document.querySelectorAll('.field-input.error').forEach(el => el.classList.remove('error')); }
+function markFieldError(id) {
+  const el = z(id);
+  if (!el) return;
+
+  if (el.classList.contains('range-input')) {
+    const wrapper = el.closest('.range-wrapper');
+    if (wrapper) wrapper.classList.add('error');
+  } else {
+    el.classList.add('error');
+  }
+}
+
+function clearFieldErrors() {
+  document.querySelectorAll('.field-input.error').forEach(el => el.classList.remove('error'));
+  document.querySelectorAll('.range-wrapper.error').forEach(el => el.classList.remove('error'));
+}
 
 function validateForm() {
   clearFieldErrors();
@@ -221,29 +292,35 @@ function buildRecommendations(datos, isCritical) {
    RENDERIZAR RESULTADO
    --------------------------------------------------------------- */
 function renderResult(datos, apiResponse) {
-  const isCritical   = apiResponse.prediccion === 1;
-  const isNaiveBayes = apiResponse.algoritmo  === 'bayes';
+  const isCritical = apiResponse.prediccion === 1;
 
   /* Header */
   const iconWrap = z('result-icon-wrap');
-  iconWrap.className   = 'result-icon-wrap ' + (isCritical ? 'critical' : 'stable');
+  iconWrap.className = 'result-icon-wrap ' + (isCritical ? 'critical' : 'stable');
   iconWrap.textContent = isCritical ? '⚠️' : '✅';
 
-  z('result-algo-tag').textContent = isNaiveBayes
-    ? 'Naive Bayes · Preciso'
-    : 'OneR · Común';
+  const ALGO_DISPLAY = {
+    bayes: 'Naive Bayes · Preciso',
+    oner:  'OneR · Común',
+    j48:   'J48 · Árbol',
+    rf:    'Random Forest · Ensamble',
+    ibk:   'IBk / KNN · Vecindad',
+    logistic: 'Logistic · Regresión',
+  };
 
+  const algoTag = ALGO_DISPLAY[apiResponse.algoritmo] || apiResponse.algoritmo || 'Algoritmo';
+  z('result-algo-tag').textContent = algoTag;
   z('result-patient').textContent = datos.nombre;
 
   const statusEl = z('result-status-text');
-  statusEl.className   = 'result-status-text ' + (isCritical ? 'critical' : 'stable');
+  statusEl.className = 'result-status-text ' + (isCritical ? 'critical' : 'stable');
   statusEl.textContent = isCritical
     ? '⚠️ Estado CRÍTICO — Riesgo elevado de falla cardíaca'
     : '✅ Estado ESTABLE — Riesgo bajo de falla cardíaca';
 
-  /* Confianza (solo Bayes) */
+  /* Confianza (si el modelo devuelve 'confianza') */
   const confSection = z('result-confidence');
-  if (isNaiveBayes) {
+  if (apiResponse.confianza !== undefined) {
     confSection.hidden = false;
     const pct = Math.round(apiResponse.confianza * 100);
     z('confidence-value').textContent = pct + '%';
@@ -259,7 +336,7 @@ function renderResult(datos, apiResponse) {
 
   /* Variable crítica (solo OneR) */
   const critVarSection = z('result-critical-var');
-  if (!isNaiveBayes) {
+  if (apiResponse.algoritmo === 'oner') {
     critVarSection.hidden = false;
     z('crit-value').textContent = apiResponse.variable_nombre ?? apiResponse.variable_critica;
   } else {
@@ -356,6 +433,7 @@ z('btn-restart').addEventListener('click', () => {
   hideError();
   z('confidence-bar').style.width = '0%';
   z('result-section').hidden = true;
+  document.querySelectorAll('.range-input').forEach(updateRangeControl);
   document.querySelectorAll('.algo-card input[type="radio"]').forEach(r => {
     r.checked = false;
     const inner = r.closest('.algo-card').querySelector('.check-inner');
@@ -368,6 +446,16 @@ z('btn-restart').addEventListener('click', () => {
    Limpiar errores al corregir campos
    --------------------------------------------------------------- */
 document.querySelectorAll('.field-input').forEach(input => {
-  input.addEventListener('input',  () => { input.classList.remove('error'); hideError(); });
-  input.addEventListener('change', () => { input.classList.remove('error'); hideError(); });
+  input.addEventListener('input',  () => {
+    input.classList.remove('error');
+    const wrapper = input.closest('.range-wrapper');
+    if (wrapper) wrapper.classList.remove('error');
+    hideError();
+  });
+  input.addEventListener('change', () => {
+    input.classList.remove('error');
+    const wrapper = input.closest('.range-wrapper');
+    if (wrapper) wrapper.classList.remove('error');
+    hideError();
+  });
 });

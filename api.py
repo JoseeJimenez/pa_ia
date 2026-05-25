@@ -14,6 +14,9 @@ from flask_cors import CORS
 import pandas as pd
 from sklearn.naive_bayes import GaussianNB
 from sklearn.tree import DecisionTreeClassifier
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.linear_model import LogisticRegression
 from sklearn.preprocessing import StandardScaler
 
 # ─────────────────────────────────────────
@@ -36,6 +39,22 @@ modelo_oner.fit(X, y)
 
 # Variable crítica de OneR
 VARIABLE_CRITICA = COLUMN_ORDER[modelo_oner.feature_importances_.argmax()]
+
+# J48 (árbol de decisión completo)
+modelo_j48 = DecisionTreeClassifier(random_state=42)
+modelo_j48.fit(X, y)
+
+# Random Forest
+modelo_rf = RandomForestClassifier(n_estimators=100, random_state=42)
+modelo_rf.fit(X, y)
+
+# IBk / KNN (usa datos escalados)
+modelo_ibk = KNeighborsClassifier(n_neighbors=5)
+modelo_ibk.fit(X_scaled, y)
+
+# Regresión logística (usa datos escalados)
+modelo_logistic = LogisticRegression(random_state=42, max_iter=1000)
+modelo_logistic.fit(X_scaled, y)
 
 NOMBRES_VARIABLES = {
     'age':                    'Edad',
@@ -119,6 +138,7 @@ def predict():
         algoritmo = data.get('algoritmo', 'bayes')
         paciente_df = parse_patient(data)
 
+        # Naive Bayes (usa escalado)
         if algoritmo == 'bayes':
             paciente_escalado = scaler.transform(paciente_df)
             prediccion = int(modelo_bayes.predict(paciente_escalado)[0])
@@ -127,13 +147,14 @@ def predict():
 
             return jsonify({
                 'algoritmo':  'bayes',
-                'prediccion': prediccion,            # 0 = ESTABLE, 1 = CRÍTICO
-                'confianza':  round(confianza, 4),   # 0.0 – 1.0
+                'prediccion': prediccion,
+                'confianza':  round(confianza, 4),
                 'prob_estable':  round(probabilidades[0], 4),
                 'prob_critico':  round(probabilidades[1], 4),
             })
 
-        else:  # oner
+        # OneR — variable crítica
+        if algoritmo == 'oner':
             prediccion = int(modelo_oner.predict(paciente_df)[0])
             var_critica_csv = VARIABLE_CRITICA
             var_critica_nombre = NOMBRES_VARIABLES.get(var_critica_csv, var_critica_csv)
@@ -144,6 +165,62 @@ def predict():
                 'variable_critica':  var_critica_csv,
                 'variable_nombre':   var_critica_nombre,
             })
+
+        # J48 (Decision Tree completo)
+        if algoritmo == 'j48':
+            prediccion = int(modelo_j48.predict(paciente_df)[0])
+            probabilidades = modelo_j48.predict_proba(paciente_df)[0].tolist()
+            confianza = probabilidades[prediccion]
+            return jsonify({
+                'algoritmo': 'j48',
+                'prediccion': prediccion,
+                'confianza': round(confianza, 4),
+                'prob_estable': round(probabilidades[0], 4),
+                'prob_critico': round(probabilidades[1], 4),
+            })
+
+        # Random Forest
+        if algoritmo == 'rf':
+            prediccion = int(modelo_rf.predict(paciente_df)[0])
+            probabilidades = modelo_rf.predict_proba(paciente_df)[0].tolist()
+            confianza = probabilidades[prediccion]
+            return jsonify({
+                'algoritmo': 'rf',
+                'prediccion': prediccion,
+                'confianza': round(confianza, 4),
+                'prob_estable': round(probabilidades[0], 4),
+                'prob_critico': round(probabilidades[1], 4),
+            })
+
+        # IBk / KNN (usa escalado)
+        if algoritmo == 'ibk' or algoritmo == 'knn':
+            paciente_escalado = scaler.transform(paciente_df)
+            prediccion = int(modelo_ibk.predict(paciente_escalado)[0])
+            probabilidades = modelo_ibk.predict_proba(paciente_escalado)[0].tolist()
+            confianza = probabilidades[prediccion]
+            return jsonify({
+                'algoritmo': 'ibk',
+                'prediccion': prediccion,
+                'confianza': round(confianza, 4),
+                'prob_estable': round(probabilidades[0], 4),
+                'prob_critico': round(probabilidades[1], 4),
+            })
+
+        # Regresión logística (usa escalado)
+        if algoritmo == 'logistic' or algoritmo == 'logreg':
+            paciente_escalado = scaler.transform(paciente_df)
+            prediccion = int(modelo_logistic.predict(paciente_escalado)[0])
+            probabilidades = modelo_logistic.predict_proba(paciente_escalado)[0].tolist()
+            confianza = probabilidades[prediccion]
+            return jsonify({
+                'algoritmo': 'logistic',
+                'prediccion': prediccion,
+                'confianza': round(confianza, 4),
+                'prob_estable': round(probabilidades[0], 4),
+                'prob_critico': round(probabilidades[1], 4),
+            })
+
+        return jsonify({'error': f'Algoritmo desconocido: {algoritmo}'}), 400
 
     except KeyError as e:
         return jsonify({'error': f'Campo faltante: {e}'}), 400

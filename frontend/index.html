@@ -7,7 +7,7 @@
   <meta name="description" content="Sistema de diagnóstico de falla cardíaca con Inteligencia Artificial. Ingresa tus datos clínicos y obtén un resultado basado en Naive Bayes u OneR." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
@@ -107,6 +107,69 @@
             </div>
           </label>
 
+          <label class="algo-card" for="algo-j48" id="label-j48">
+            <input type="radio" name="algoritmo" id="algo-j48" value="j48" />
+            <div class="algo-icon">
+              <svg width="32" height="32" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+                <path d="M6 26h20V6L16 12 6 6v20z" fill="#e6f1ea" stroke="#486157" stroke-width="1.2"/>
+                <path d="M10 20h12M10 16h12" stroke="#486157" stroke-width="1.6" stroke-linecap="round"/>
+              </svg>
+            </div>
+            <div class="algo-info">
+              <span class="algo-tag">ÁRBOL</span>
+              <strong class="algo-name">J48 (Árbol)</strong>
+              <p class="algo-desc">Árbol de decisión completo que modela reglas complejas entre las variables para explicar el riesgo.</p>
+            </div>
+            <div class="algo-check" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="9" stroke="#c2c8c3" stroke-width="1.5"/><circle class="check-inner" cx="10" cy="10" r="5" fill="#486157" opacity="0"/></svg></div>
+          </label>
+
+          <label class="algo-card" for="algo-rf" id="label-rf">
+            <input type="radio" name="algoritmo" id="algo-rf" value="rf" />
+            <div class="algo-icon">
+              <svg width="32" height="32" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+                <circle cx="10" cy="10" r="3" fill="#b1cdbf"/><circle cx="22" cy="10" r="3" fill="#617a6f"/><circle cx="16" cy="20" r="3" fill="#486157"/>
+              </svg>
+            </div>
+            <div class="algo-info">
+              <span class="algo-tag">ENSAMBLE</span>
+              <strong class="algo-name">Random Forest</strong>
+              <p class="algo-desc">Combina múltiples árboles para mejorar la robustez y reducir el sobreajuste en el diagnóstico.</p>
+            </div>
+            <div class="algo-check" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="9" stroke="#c2c8c3" stroke-width="1.5"/><circle class="check-inner" cx="10" cy="10" r="5" fill="#486157" opacity="0"/></svg></div>
+          </label>
+
+          <label class="algo-card" for="algo-ibk" id="label-ibk">
+            <input type="radio" name="algoritmo" id="algo-ibk" value="ibk" />
+            <div class="algo-icon">
+              <svg width="32" height="32" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+                <path d="M8 24c2-6 6-10 10-10s8 4 10 10" stroke="#486157" stroke-width="1.6" stroke-linecap="round"/>
+                <circle cx="12" cy="18" r="2" fill="#b1cdbf"/><circle cx="20" cy="18" r="2" fill="#617a6f"/>
+              </svg>
+            </div>
+            <div class="algo-info">
+              <span class="algo-tag">VECINOS</span>
+              <strong class="algo-name">IBk / KNN</strong>
+              <p class="algo-desc">Clasificación basada en los pacientes más similares del dataset; útil para comparaciones cercanas.</p>
+            </div>
+            <div class="algo-check" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="9" stroke="#c2c8c3" stroke-width="1.5"/><circle class="check-inner" cx="10" cy="10" r="5" fill="#486157" opacity="0"/></svg></div>
+          </label>
+
+          <label class="algo-card" for="algo-logistic" id="label-logistic">
+            <input type="radio" name="algoritmo" id="algo-logistic" value="logistic" />
+            <div class="algo-icon">
+              <svg width="32" height="32" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+                <rect x="6" y="8" width="20" height="16" rx="3" fill="#eaf3ee" stroke="#486157" stroke-width="1.2"/>
+                <path d="M10 20h12M10 16h8" stroke="#486157" stroke-width="1.6" stroke-linecap="round"/>
+              </svg>
+            </div>
+            <div class="algo-info">
+              <span class="algo-tag">ESTADÍSTICO</span>
+              <strong class="algo-name">Logistic</strong>
+              <p class="algo-desc">Modelo estadístico que estima probabilidades y odds de un evento (falla cardíaca).</p>
+            </div>
+            <div class="algo-check" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="9" stroke="#c2c8c3" stroke-width="1.5"/><circle class="check-inner" cx="10" cy="10" r="5" fill="#486157" opacity="0"/></svg></div>
+          </label>
+
         </div>
       </div>
 
@@ -137,10 +200,13 @@
 
           <!-- Edad -->
           <div class="field-group">
-            <label class="field-label" for="edad">Edad</label>
-            <div class="input-wrapper">
-              <input class="field-input" type="number" id="edad" name="edad" placeholder="40" min="1" max="120" required />
-              <span class="input-unit">años</span>
+            <div class="field-head">
+              <label class="field-label" for="edad">Edad</label>
+              <span class="range-current"><output id="edad-value">60</output><span>años</span></span>
+            </div>
+            <div class="range-wrapper">
+              <input class="field-input range-input" type="range" id="edad" name="edad" min="18" max="95" step="1" value="60" data-healthy-min="18" data-healthy-max="45" required />
+              <div class="range-meta"><span>18 años</span><span>95 años</span></div>
             </div>
           </div>
 
@@ -161,13 +227,16 @@
 
           <!-- Fracción de Eyección -->
           <div class="field-group">
-            <label class="field-label" for="fraccion_eyeccion">
-              Fracción de Eyección
-              <button type="button" class="info-btn" aria-label="¿Qué es esto?" data-tooltip="Porcentaje de sangre que el ventrículo izquierdo bombea en cada latido. Normal: 55-70%.">?</button>
-            </label>
-            <div class="input-wrapper">
-              <input class="field-input" type="number" id="fraccion_eyeccion" name="fraccion_eyeccion" placeholder="60" min="1" max="100" required />
-              <span class="input-unit">%</span>
+            <div class="field-head">
+              <label class="field-label" for="fraccion_eyeccion">
+                Fracción de Eyección
+                <button type="button" class="info-btn" aria-label="¿Qué es esto?" data-tooltip="Porcentaje de sangre que el ventrículo izquierdo bombea en cada latido. Normal: 55-70%.">?</button>
+              </label>
+              <span class="range-current"><output id="fraccion_eyeccion-value">38</output><span>%</span></span>
+            </div>
+            <div class="range-wrapper">
+              <input class="field-input range-input" type="range" id="fraccion_eyeccion" name="fraccion_eyeccion" min="14" max="80" step="1" value="38" data-healthy-min="55" data-healthy-max="70" required />
+              <div class="range-meta"><span>14 %</span><span>80 %</span></div>
             </div>
           </div>
 
@@ -185,13 +254,16 @@
 
           <!-- Sodio Sérico -->
           <div class="field-group">
-            <label class="field-label" for="sodio_serico">
-              Sodio Sérico
-              <button type="button" class="info-btn" aria-label="¿Qué es esto?" data-tooltip="Nivel de sodio en sangre. El rango normal es 135–145 mEq/L.">?</button>
-            </label>
-            <div class="input-wrapper">
-              <input class="field-input" type="number" id="sodio_serico" name="sodio_serico" placeholder="137" min="100" max="160" required />
-              <span class="input-unit">mEq/L</span>
+            <div class="field-head">
+              <label class="field-label" for="sodio_serico">
+                Sodio Sérico
+                <button type="button" class="info-btn" aria-label="¿Qué es esto?" data-tooltip="Nivel de sodio en sangre. El rango normal es 135–145 mEq/L.">?</button>
+              </label>
+              <span class="range-current"><output id="sodio_serico-value">137</output><span>mEq/L</span></span>
+            </div>
+            <div class="range-wrapper">
+              <input class="field-input range-input" type="range" id="sodio_serico" name="sodio_serico" min="110" max="150" step="1" value="137" data-healthy-min="135" data-healthy-max="145" required />
+              <div class="range-meta"><span>110 mEq/L</span><span>150 mEq/L</span></div>
             </div>
           </div>
 
@@ -221,13 +293,16 @@
 
           <!-- Tiempo de Seguimiento -->
           <div class="field-group">
-            <label class="field-label" for="tiempo">
-              Tiempo de seguimiento
-              <button type="button" class="info-btn" aria-label="¿Qué es esto?" data-tooltip="Días desde el inicio del seguimiento médico por condición cardíaca.">?</button>
-            </label>
-            <div class="input-wrapper">
-              <input class="field-input" type="number" id="tiempo" name="tiempo" placeholder="130" min="1" max="365" required />
-              <span class="input-unit">días</span>
+            <div class="field-head">
+              <label class="field-label" for="tiempo">
+                Tiempo de seguimiento
+                <button type="button" class="info-btn" aria-label="¿Qué es esto?" data-tooltip="Días desde el inicio del seguimiento médico por condición cardíaca.">?</button>
+              </label>
+              <span class="range-current"><output id="tiempo-value">130</output><span>días</span></span>
+            </div>
+            <div class="range-wrapper">
+              <input class="field-input range-input" type="range" id="tiempo" name="tiempo" min="1" max="285" step="1" value="130" required />
+              <div class="range-meta"><span>1 día</span><span>285 días</span></div>
             </div>
           </div>
 
