@@ -22,7 +22,7 @@ modelo_bayes = GaussianNB()
 modelo_bayes.fit(X_scaled, y)
 
 # 2. OneR 
-modelo_oner = DecisionTreeClassifier(max_depth=1, random_state=42)
+modelo_oner = DcisionTreeClassifier(max_depth=1, random_state=42)
 modelo_oner.fit(X, y)
 
 # 3. J48 
@@ -33,11 +33,11 @@ modelo_j48.fit(X, y)
 modelo_rf = RandomForestClassifier(n_estimators=100, random_state=42)
 modelo_rf.fit(X, y)
 
-# 5. IBk, este fue recomendado por Claude, pero ni idea 
+# 5. IBk 
 modelo_ibk = KNeighborsClassifier(n_neighbors=5)
 modelo_ibk.fit(X_scaled, y)
 
-# 6. Logistic, este tambien fue recomendacion de Claude 
+# 6. Logistic
 modelo_logistic = LogisticRegression(random_state=42)
 modelo_logistic.fit(X_scaled, y)
 
